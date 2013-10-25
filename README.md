@@ -17,14 +17,14 @@ Relevant files are:
 		
 * Bean configuration
 
-       grails-app/conf/spring/resources.groovy
+        grails-app/conf/spring/resources.groovy
 	  
 * Beans used for security constraint implementation
 
-       src/groovy/com/mscharhag/GrailsBeanResolver.groovy
-	   src/groovy/com/mscharhag/GrailsExpressionHandler.groovy
-	   src/groovy/com/mscharhag/GrailsPermissionEvaluator.groovy
-	   grails-app/services/com/mscharhag/SecurityService.groovy	   
+        src/groovy/com/mscharhag/GrailsBeanResolver.groovy
+	    src/groovy/com/mscharhag/GrailsExpressionHandler.groovy
+	    src/groovy/com/mscharhag/GrailsPermissionEvaluator.groovy
+	    grails-app/services/com/mscharhag/SecurityService.groovy	   
 
 * `Note` and `User`, two domain classes used by `NoteService`
 
