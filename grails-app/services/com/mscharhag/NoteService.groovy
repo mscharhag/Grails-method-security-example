@@ -7,6 +7,13 @@ class NoteService {
 	
 	def springSecurityService
 	
+	/*
+	 * 	Security constraints that should be implemented:
+	 * 	- Everyone should be able to get the total count of notes stored by the system with getTotalNoteCount()
+	 * 	- Logged in users can create new notes using createNote()
+	 * 	- Notes can only be read, updated or removed by the author
+	 */
+	
 	
 	@PreAuthorize('permitAll()')
 	public long getTotalNoteCount() {
@@ -33,8 +40,6 @@ class NoteService {
 	public void updateNote(Note note) {
 		note.save(failOnError: true)
 	}
-	
-
 	
 
 	@PreAuthorize("@securityService.canRemoveNote(#id)")

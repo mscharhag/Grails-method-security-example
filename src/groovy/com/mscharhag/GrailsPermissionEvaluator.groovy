@@ -12,7 +12,7 @@ class GrailsPermissionEvaluator implements PermissionEvaluator {
 
 	@Override
 	public boolean hasPermission(Authentication authentication, Object note, Object permission) {
-		def user = springSecurityService.getCurrentUser();
+		def user = springSecurityService.getCurrentUser()
 		return permission == 'remove' && note.author == user
 	}
 

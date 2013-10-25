@@ -11,52 +11,37 @@ class NoteServiceTests extends GroovyTestCase {
 	def springSecurityService
 	def noteService
 	
-	def id
+	def noteId
+	
 	
 	@Before
 	void before() {
-		User john = new User(username: 'john', password: 'secr3t', enabled: true).save(failOnError: true)
-		User paul = new User(username: 'paul', password: 's3cret', enabled: true).save(failOnError: true)
-		
-		Role role = new Role(authority: 'ROLE_USER').save(failOnError: true)
-		
-		UserRole.create(john, role)
-		UserRole.create(paul, role)
-		
-		Note note = new Note(title: "John's note", text: 'some text')
-		john.addToNotes(note)
-		john.save(flush: true, failOnError: true)
-		
-		id = note.id
-		
-		assert User.count() == 2
-		assert Note.count() == 1
-
+		setupTestData();
 		loginAsAnonymous()
 	}
 	
 	
-	void testGetTotalNoteCountAnonymous() {
+	void testGetTotalNoteCountAnonymous() { // A not logged in user CAN retrieve the total note count
 		long noteCount = noteService.getTotalNoteCount()
 		assert noteCount == 1
 	}
 	
 	
-	void testGetTotalNoteCountLoggedIn() {
+	void testGetTotalNoteCountLoggedIn() { // A logged in user CAN retrieve the total note count
 		loginAs('paul')
 		long noteCount = noteService.getTotalNoteCount()
 		assert noteCount == 1
 	}
 
 	
-	void testCreateNoteAnonymous() {
+	void testCreateNoteAnonymous() { // A not logged in user CAN NOT create a new note
 		shouldFail(AccessDeniedException) {
 			noteService.createNote(new Note(title: 'foo', text: 'bar' ))
 		}
 	}
 	
 	
-	void testCreateNoteLoggedIn() {
+	void testCreateNoteLoggedIn() { // A logged in user CAN create a new note
 		loginAs('paul')
 		noteService.createNote(new Note(title: 'foo', text: 'bar' ))
 		
@@ -65,30 +50,30 @@ class NoteServiceTests extends GroovyTestCase {
 	}
 	
 	
-	void testGetNoteAnonymous() {
+	void testGetNoteAnonymous() { // A not logged in user CAN NOT get a specific note
 		shouldFail(AccessDeniedException) {
-			noteService.getNote(id)
+			noteService.getNote(noteId)
 		}
 	}
 	
 	
-	void testGetNoteLoggedIn() {
+	void testGetNoteLoggedIn() { // A logged in user CAN NOT get a note created by another user
 		loginAs('paul')
 		shouldFail(AccessDeniedException) {
-			noteService.getNote(id)
+			noteService.getNote(noteId)
 		}
 	}
 	
 	
-	void testGetNoteAuthor() {
+	void testGetNoteAuthor() { // The author CAN get his own note
 		loginAs('john')
-		Note note = noteService.getNote(id)
+		Note note = noteService.getNote(noteId)
 		assert note.title == "John's note"
 	}
 	
 	
-	void testUpdateAnonymous() {
-		Note note = Note.get(id)
+	void testUpdateAnonymous() { // A not logged in user CAN NOT update a note
+		Note note = Note.get(noteId)
 		note.title = 'new title'
 		
 		shouldFail(AccessDeniedException) {
@@ -97,9 +82,9 @@ class NoteServiceTests extends GroovyTestCase {
 	}
 	
 	
-	void testUpdateLoggedIn() {
+	void testUpdateLoggedIn() { // A logged in user CAN NOT update a note created by another user
 		loginAs('paul')
-		Note note = Note.get(id)
+		Note note = Note.get(noteId)
 		note.title = 'new title'
 		
 		shouldFail(AccessDeniedException) {
@@ -108,59 +93,83 @@ class NoteServiceTests extends GroovyTestCase {
 	}
 	
 	
-	void testUpdateAuthor() {
+	void testUpdateAuthor() { // The author CAN update his own note
 		loginAs('john')
-		Note note = Note.get(id)
+		Note note = Note.get(noteId)
 		note.title = 'new title'
 		
 		noteService.updateNote(note)
 		
-		Note dbNote = Note.get(id)
+		Note dbNote = Note.get(noteId)
 		assert dbNote.title == 'new title'
 	}
 
 	
-	void testRemoveNoteUsingBeanResolverAnonymous() {
+	void testRemoveNoteUsingBeanResolverAnonymous() { // A not logged in user CAN NOT remove a note
 		shouldFail(AccessDeniedException) {
-			noteService.removeNoteUsingBeanResolver(id)
+			noteService.removeNoteUsingBeanResolver(noteId)
 		}
 	}
 	
 	
-	void testRemoveNoteUsingBeanResolverLoggedIn() {
+	void testRemoveNoteUsingBeanResolverLoggedIn() { // A logged in user CAN NOT remove a note created by another user
 		loginAs('paul')
 		shouldFail(AccessDeniedException) {
-			noteService.removeNoteUsingBeanResolver(id)
+			noteService.removeNoteUsingBeanResolver(noteId)
 		}
 	}
 	
 	
-	void testRemoveNoteUsingBeanResolverAuthor() {
+	void testRemoveNoteUsingBeanResolverAuthor() { // The author of the note CAN remove his own note
 		loginAs('john')
-		noteService.removeNoteUsingBeanResolver(id)
+		noteService.removeNoteUsingBeanResolver(noteId)
 		assert Note.count() == 0
 	}
 
 	
-	void testRemoveNoteUsingPermissionEvaluatorAnonymous() {
+	void testRemoveNoteUsingPermissionEvaluatorAnonymous() { // A not logged in user CAN NOT remove a note
 		shouldFail(AccessDeniedException) {
-			noteService.removeNoteUsingPermissionEvaluator(id)
+			noteService.removeNoteUsingPermissionEvaluator(noteId)
 		}
 	}
 	
 	
-	void testRemoveNoteUsingPermissionEvaluatorLoggedIn() {
+	void testRemoveNoteUsingPermissionEvaluatorLoggedIn() { // A logged in user CAN NOT remove a note created by another user
 		loginAs('paul')
 		shouldFail(AccessDeniedException) {
-			noteService.removeNoteUsingPermissionEvaluator(id)
+			noteService.removeNoteUsingPermissionEvaluator(noteId)
 		}
 	}
 	
 	
-	void testRemoveNoteUsingPermissionEvaluatorAuthor() {
+	void testRemoveNoteUsingPermissionEvaluatorAuthor() { // The author of the note CAN remove his own note
 		loginAs('john')
-		noteService.removeNoteUsingPermissionEvaluator(id)
+		noteService.removeNoteUsingPermissionEvaluator(noteId)
 		assert Note.count() == 0
+	}
+	
+	
+	private void setupTestData() {
+		
+		// Create two users: john and paul
+		User john = new User(username: 'john', password: 'secr3t', enabled: true).save(failOnError: true)
+		User paul = new User(username: 'paul', password: 's3cret', enabled: true).save(failOnError: true)
+
+		// Give both users the role ROLE_USER 
+		// Roles are not used in this example but Spring Security requires at least one role per user
+		Role role = new Role(authority: 'ROLE_USER').save(failOnError: true)
+		UserRole.create(john, role)
+		UserRole.create(paul, role)
+		
+		// Add a note to john
+		Note note = new Note(title: "John's note", text: 'some text')
+		john.addToNotes(note)
+		john.save(flush: true, failOnError: true)
+		
+		noteId = note.id
+		
+		assert User.count() == 2
+		assert Note.count() == 1
 	}
 	
 	
@@ -168,11 +177,8 @@ class NoteServiceTests extends GroovyTestCase {
 		springSecurityService.reauthenticate(username)
 	}
 	
+	
 	private void loginAsAnonymous() {
 		SCH.context.setAuthentication(new AnonymousAuthenticationToken('key', 'Anonymous', AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")))
-	}
-	
-	private void logout() {
-		loginAsAnonymous()	
 	}
 }
