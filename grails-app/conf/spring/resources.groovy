@@ -1,6 +1,6 @@
-import com.scharhag.GrailsBeanResolver;
-import com.scharhag.GrailsExpressionHandler;
-import com.scharhag.GrailsPermissionEvaluator;
+import com.mscharhag.GrailsBeanResolver;
+import com.mscharhag.GrailsExpressionHandler;
+import com.mscharhag.GrailsPermissionEvaluator;
 
 // Place your Spring DSL code here
 beans = {
